@@ -39,6 +39,7 @@ import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
 from plotly.offline import iplot, init_notebook_mode
+import plotly.graph_objs as go
 from datetime import datetime
 import dateutil.parser
 import seaborn as sns 
@@ -67,7 +68,7 @@ def convert_date(timestamp, date_format='%Y-%m-%d'):
 
 
 # Map category labels, add category_label column.
-def map_categories(df, column='category_label', map_dict=category_dict):
+def map_categories(df, map_dict, column='category_label'):
     '''
     Adds category label column to dataframe.
     Accepts df: Dataframe to perform map on.
@@ -105,6 +106,39 @@ def top_video_producing_for_yr(df, year, top_range=5):
     print('#'*30)
 
     return top_producers
+
+
+# Plotly Bar graph 
+def plotly_bar(x, y, name, title, x_title, y_title, filename, colors=None):
+    trace1 = go.Bar(x=x, 
+                    y=y,
+                    name=name,
+                    marker={'color':colors})
+    layout = go.Layout(title=title, 
+                        xaxis={'title':x_title},
+                        yaxis={'title':y_title})
+
+    data = [trace1]
+    fig = go.Figure(data=data, layout=layout)
+    iplot(fig, filename=filename)
+
+# Plotly Bar graph for year
+def plot_category_bar_for_yr(df, year, colors=None):
+    year_filter = [date.year == year for date in df['publish_time']]
+    sliced_df = df[year_filter]
+
+    category_counts_for_yr = sliced_df.category_label.value_counts()
+    print(category_counts_for_yr)
+
+    x = category_counts_for_yr.index
+    y = category_counts_for_yr
+    name = f'Category Bar For {year}'
+    title = f'Category Count ({year})'
+    x_title = 'Category'
+    y_title = 'Count'
+    filename = f'category_bar_{year}'
+
+    plotly_bar(x=x, y=y, name=name, title=title, x_title=x_title, y_title=y_title, filename=filename, colors=colors)
 
 
 #%% [markdown]
@@ -183,19 +217,27 @@ category_dict = {
 
 #%%
 # Store new dataframe in a new variable.
-mapped_df = map_categories(df)
+mapped_df = map_categories(df, map_dict=category_dict)
+year_list = [int(date.year) for date in mapped_df['publish_time']]
+mapped_df['year'] = year_list
 
 # Rearrange columns so that category_id 
 # and category_label are next to one another.
 mapped_df = mapped_df[['video_id', 'trending_date', 'title', 'channel_title', 'category_id',
                     'category_label', 'publish_time', 'tags', 'views', 'likes', 'dislikes', 
                     'comment_count', 'thumbnail_link', 'comments_disabled', 'ratings_disabled',
-                    'video_error_or_removed', 'description']]
+                    'video_error_or_removed', 'description', 'year']]
+
 
 #%%
 category_counts = mapped_df.category_label.value_counts()
 category_counts
 
+category_list = category_counts.index
+cat_colors = ['#016e29', '#7f2171', '#b241d0', '#decad2', '#54d7a1', '#10e481', '#2ec580', '#4fa15c',
+                '#94d85c', '#df5aad', '#6dd279', '#91a9ed', '#bb232b', '#b6d41b', '#359fe1', '#4985fd']
+
+cat_colors_dict = {cat:color for cat, color in zip(category_list, cat_colors)}
 #%%
 i = 0
 for count in category_counts:
@@ -204,13 +246,67 @@ for count in category_counts:
     i += 1
 
 #%%
+x = category_counts.index
+y = category_counts
+name = 'Category Bar'
+colors = cat_colors
+title = 'Category Count (2006 - 2018)'
+x_title = 'Category'
+y_title = 'Count'
+filename = 'category_bar'
+plotly_bar(x, y, name, title, x_title, y_title, filename, colors=colors)
+
+
+#%%
+
+plot_category_bar_for_yr(mapped_df, 2018, colors=cat_colors)
+
+#%%
+plot_category_bar_for_yr(mapped_df, 2017, colors=cat_colors)
+
+#%%
+# year_filter = [date.year == 2018 for date in mapped_df['publish_time']]
+# concat_df = mapped_df[year_filter]
+
+years = sorted(set(date.year for date in df['publish_time']), reverse=True)
+data = []
+for year in years:
+    
+    year_filter = [date.year == year for date in mapped_df['publish_time']]
+    sliced_df = mapped_df[year_filter]
+    grouped_count = sliced_df.groupby('category_label')['video_id'].count()
+
+    
+    year = go.Scatter(x=list(year), y=grouped_count)
+    data.append(year)
+layout = go.Layout(title='Scatter')
+fig = go.Figure(data=data, layout=layout)
+iplot(fig, filename='Scatter')
+
+
+#%%
+concat_df.head()
+#%%
+
+grouped_df = concat_df.groupby(['category_label', 'year'])['video_id'].count()
+#%%
+grouped_df.index[1][1]
+# category_counts_for_yr = sliced_df.category_label.value_counts()
+#%%
+data = go.Scatter(x=years, y=category_counts_for_yr)
+layout = go.Layout(title='Scatter')
+
+fig = go.Figure(data=data, layout=layout)
+iplot(fig, filename='Scatter')
+
+#%%
 channels = mapped_df['channel_title'].unique()
 num_of_channels = len(channels)
 
 
 
 #%%
-top_video_producing_for_yr(mapped_df, 2017)
+top_video_producing_for_yr(mapped_df, 2019)
 #%%
 # sliced_df = [date.year == 2017 for date in df['publish_time']]
 # print(min(sliced_df), max(sliced_df))
@@ -225,4 +321,6 @@ top_video_producing_for_yr(mapped_df, 2017)
 # #%%
 # df.tail()
 
-# #%%
+#%%
+concat_df.tail()
+# mapped_df.shape
