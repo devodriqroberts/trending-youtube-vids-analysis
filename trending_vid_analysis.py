@@ -288,9 +288,9 @@ iplot(fig, filename='Scatter')
 concat_df.head()
 #%%
 
-grouped_df = concat_df.groupby(['category_label', 'year'])['video_id'].count()
+grouped_df = mapped_df.groupby(['category_label', 'year'])['video_id'].count()
 #%%
-grouped_df.index[1][1]
+grouped_df.unstack().loc['Autos & Vehicles'].index
 # category_counts_for_yr = sliced_df.category_label.value_counts()
 #%%
 data = go.Scatter(x=years, y=category_counts_for_yr)
