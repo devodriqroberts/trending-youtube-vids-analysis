@@ -246,6 +246,7 @@ for count in category_counts:
     i += 1
 
 #%%
+# PLot bar chart for all years.
 x = category_counts.index
 y = category_counts
 name = 'Category Bar'
@@ -258,69 +259,49 @@ plotly_bar(x, y, name, title, x_title, y_title, filename, colors=colors)
 
 
 #%%
-
+# PLot bar chart for 2018.
 plot_category_bar_for_yr(mapped_df, 2018, colors=cat_colors)
 
 #%%
+# PLot bar chart for 2018.
 plot_category_bar_for_yr(mapped_df, 2017, colors=cat_colors)
 
 #%%
-# year_filter = [date.year == 2018 for date in mapped_df['publish_time']]
-# concat_df = mapped_df[year_filter]
-
-years = sorted(set(date.year for date in df['publish_time']), reverse=True)
-data = []
-for year in years:
-    
-    year_filter = [date.year == year for date in mapped_df['publish_time']]
-    sliced_df = mapped_df[year_filter]
-    grouped_count = sliced_df.groupby('category_label')['video_id'].count()
-
-    
-    year = go.Scatter(x=list(year), y=grouped_count)
-    data.append(year)
-layout = go.Layout(title='Scatter')
-fig = go.Figure(data=data, layout=layout)
-iplot(fig, filename='Scatter')
-
-
-#%%
-concat_df.head()
-#%%
-
+# Table of year and category labels. Here we see the general number of videos
+# (That are tracked) uploaded since 2006.
 grouped_df = mapped_df.groupby(['category_label', 'year'])['video_id'].count()
-#%%
-grouped_df.unstack().loc['Autos & Vehicles'].index
-# category_counts_for_yr = sliced_df.category_label.value_counts()
-#%%
-data = go.Scatter(x=years, y=category_counts_for_yr)
-layout = go.Layout(title='Scatter')
-
-fig = go.Figure(data=data, layout=layout)
-iplot(fig, filename='Scatter')
-
-#%%
-channels = mapped_df['channel_title'].unique()
-num_of_channels = len(channels)
-
+unstacked_df = grouped_df.unstack().fillna(value=0)
+unstacked_df
 
 
 #%%
-top_video_producing_for_yr(mapped_df, 2019)
-#%%
-# sliced_df = [date.year == 2017 for date in df['publish_time']]
-# print(min(sliced_df), max(sliced_df))
-# print(df['publish_time'].min(), df['publish_time'].max())
-
-# sliced_df_2 = df[sliced_df]
-# #%%
-# sliced_df_2.head()
-# #%%
-# mapped_df['trending_date'][0].year == 2016
-
-# #%%
-# df.tail()
+channel_groups = mapped_df.groupby(['channel_title'])['video_id'].count().sort_values(ascending=False)
+channel_groups[:30]
 
 #%%
-concat_df.tail()
-# mapped_df.shape
+end = 30
+name = f'Top {end}'
+title = f'Top  {end} Video Procucing Channels'
+x_title = 'Channels'
+y_title = 'Count'
+filename = f'top_ {end}_producing'
+
+plotly_bar(x=channel_groups.index[:end], 
+            y=channel_groups[:end], 
+            name=name, 
+            title=title, 
+            x_title=x_title, 
+            y_title=y_title, 
+            filename=filename)
+#%%
+# Top category for ESPN channel.
+top_channel_df = mapped_df[mapped_df['channel_title'] == 'ESPN']
+top_channel_df.groupby(['category_label'])['video_id'].count().sort_values(ascending=False)
+
+#%%
+# Top category for The Tonight Show.
+channel = 'The Tonight Show Starring Jimmy Fallon'
+top_channel_df = mapped_df[mapped_df['channel_title'] == channel]
+top_channel_df.groupby(['category_label'])['video_id'].count().sort_values(ascending=False)
+
+#%%
