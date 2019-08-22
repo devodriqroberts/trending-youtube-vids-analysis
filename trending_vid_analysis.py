@@ -1,5 +1,10 @@
 #%% [markdown]
 # # Trending YouTube Video Statistics Analysis
+#
+# ![Photo by Isaac Smith on Unsplash](https://images.unsplash.com/photo-1543286386-713bdd548da4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=900&q=60 "Chart")
+# 
+# Photo by Isaac Smith on Unsplash
+#
 # YouTube (the world-famous video sharing website) maintains a 
 # list of the top trending videos on the platform. According to 
 # Variety magazine, “To determine the year’s top-trending videos, 
@@ -174,7 +179,8 @@ df.describe()
 - Which category was assigned the most?
 - Which category was assigned the least?
 - Which creator uploaded the most videos?
->- Which were thier most assigned video category?
+>- Which were their most assigned video category?
+- Which category has had the most views 2017 / 2018?
 '''
 #%%
 # Let add category labels to the dataframe.
@@ -238,6 +244,7 @@ cat_colors = ['#016e29', '#7f2171', '#b241d0', '#decad2', '#54d7a1', '#10e481', 
                 '#94d85c', '#df5aad', '#6dd279', '#91a9ed', '#bb232b', '#b6d41b', '#359fe1', '#4985fd']
 
 cat_colors_dict = {cat:color for cat, color in zip(category_list, cat_colors)}
+
 #%%
 i = 0
 for count in category_counts:
@@ -281,7 +288,7 @@ channel_groups[:30]
 #%%
 end = 30
 name = f'Top {end}'
-title = f'Top  {end} Video Procucing Channels'
+title = f'Top  {end} Video Producing Channels'
 x_title = 'Channels'
 y_title = 'Count'
 filename = f'top_ {end}_producing'
@@ -305,3 +312,48 @@ top_channel_df = mapped_df[mapped_df['channel_title'] == channel]
 top_channel_df.groupby(['category_label'])['video_id'].count().sort_values(ascending=False)
 
 #%%
+# Report out categories and the amount of view accrued from 2006 - 2018.
+view_counts = mapped_df.groupby(['category_label'])['views'].sum().sort_values(ascending=False)
+
+i = 0
+for count in view_counts:
+    print(f'{view_counts.index[i]} has accrued {count} views all-time (2006-2018).')
+    print()
+    i += 1
+
+print('View Count Series')
+print(view_counts)
+
+#%%
+# Report out categories and the amount of view accrued in 2017.
+df_2017 = mapped_df[mapped_df['year'] == 2017]
+view_counts_2017 = df_2017.groupby(['category_label'])['views'].sum().sort_values(ascending=False)
+
+i = 0
+for count in view_counts_2017:
+    print(f'{view_counts_2017.index[i]} has accrued {count} views in 2017.')
+    print()
+    i += 1
+
+print()
+print('View Count Series 2017', '#'*10)
+print(view_counts_2017)
+print('#'*35)
+
+#%%
+# Report out categories and the amount of view accrued in 2018.
+df_2018 = mapped_df[mapped_df['year'] == 2018]
+view_counts_2018 = df_2018.groupby(['category_label'])['views'].sum().sort_values(ascending=False)
+
+i = 0
+for count in view_counts_2018:
+    print(f'{view_counts_2018.index[i]} has accrued {count} views in 2018.')
+    print()
+    i += 1
+
+print()
+print('View Count Series 2018', '#'*10)
+print(view_counts_2018)
+print('#'*35)
+
+
